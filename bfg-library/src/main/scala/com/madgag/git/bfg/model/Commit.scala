@@ -66,10 +66,12 @@ object CommitNode {
 }
 
 case class CommitNode(author: PersonIdent, committer: PersonIdent, message: String, encoding: Charset = Constants.CHARSET) {
-  lazy val subject = message.lines.toStream.headOption
+  // FIXME/2019-12-23: (lb): See commit comments re: linesIterator is deprecated,
+  //   but message.lines.toStream "is not a member of java.util.stream.Stream[String]".
+  lazy val subject = message.linesIterator.toStream.headOption
   lazy val lastParagraphBreak = message.lastIndexOf("\n\n")
   lazy val messageWithoutFooters = if (footers.isEmpty) message else (message take lastParagraphBreak)
-  lazy val footers: List[Footer] = message.drop(lastParagraphBreak).lines.collect {
+  lazy val footers: List[Footer] = message.drop(lastParagraphBreak).linesIterator.collect {
     case Footer.FooterPattern(key, value) => Footer(key, value)
   }.toList
 
